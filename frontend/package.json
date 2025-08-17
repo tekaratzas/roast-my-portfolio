@@ -10,7 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.12",
+    "@heroicons/react": "^2.2.0",
+    "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.11.0",
     "highcharts": "^12.3.0",
     "highcharts-react-official": "^3.2.2",

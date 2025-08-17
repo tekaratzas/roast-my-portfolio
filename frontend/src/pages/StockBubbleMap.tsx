@@ -163,20 +163,21 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
   };
 
   return (
-    <div style={{ position: "relative", height: "100vh", width: "100%" }}>
+    <div style={{ position: "relative", height: "100%", width: "100vh" }}>
       <button
         onClick={copyShareUrl}
         style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          width: "100%",
-          height: "100vh",
-          margin: 0,
-          padding: 0,
-          background: "#f7f8fa",
+          position: "absolute",
+          right: 16,
+          top: 16,
+          zIndex: 2,
+          padding: "6px 12px",
+          fontSize: "12px",
+          borderRadius: 6,
+          border: "1px solid #ccc",
+          background: "#fff",
+          cursor: "pointer",
+          color: "#000",
         }}
       >
         Share
