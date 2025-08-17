@@ -1,35 +1,15 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import StockBubbleMap from "./pages/StockBubbleMap";
+import type { Stock } from "./pages/StockBubbleMap";
 
-function App() {
-  const [count, setCount] = useState(0)
+const stocks: Stock[] = [
+  { sector: "Technology", percentageOfPortfolio: 9, name: "AAPL", value: 3500, change: 1.2, price: 228.3 },
+  { sector: "Technology", percentageOfPortfolio: 50, name: "MSFT", value: 3300, change: -0.6, price: 418.9 },
+  { sector: "Financials", percentageOfPortfolio: 34, name: "JPM", value: 600, change: 0.4, price: 206.1 },
+  { sector: "Energy", percentageOfPortfolio: 30, name: "XOM", value: 470, change: -1.9, price: 113.7 },
+  { sector: "Consumer", percentageOfPortfolio: 2, name: "AMZN", value: 2200, change: 0.0, price: 182.6 },
+];
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+export default function App() {
+  return <StockBubbleMap stocks={stocks} />;
 }
-
-export default App

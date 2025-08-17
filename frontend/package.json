@@ -12,6 +12,8 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.12",
     "axios": "^1.11.0",
+    "highcharts": "^12.3.0",
+    "highcharts-react-official": "^3.2.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
