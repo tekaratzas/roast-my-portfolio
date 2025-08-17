@@ -5,6 +5,8 @@ import {
   InvestmentsHoldingsGetRequest,
   Holding,
   Security,
+  SandboxPublicTokenCreateRequest,
+  Products,
 } from "plaid";
 
 const APP_PORT = process.env.APP_PORT || 8000;
@@ -34,8 +36,14 @@ export class InvestmentsController {
     const request: InvestmentsHoldingsGetRequest = {
       access_token: accessToken,
     };
-    const response = await this.plaidClient.investmentsHoldingsGet(request);
-    console.log("object :>> ", response.data);
+
+    const response = await this.plaidClient
+      .investmentsHoldingsGet(request)
+      .catch((error) => {
+        console.error("error :>> ", error);
+        throw error;
+      });
+
     return this.formatHoldings(
       response.data.holdings,
       response.data.securities
