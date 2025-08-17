@@ -3,6 +3,7 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 // Keep your import as requested
+// @ts-ignore
 import HC_more from "highcharts/highcharts-more";
 
 export interface Stock {
@@ -117,6 +118,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
       packedbubble: {
         minSize: "20%",
         maxSize: "120%",
+        // @ts-ignore
         zMin: 0,
         zMax: 4000,
         layoutAlgorithm: { splitSeries: false, gravitationalConstant: 0.02 },
@@ -125,6 +127,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
         dataLabels: {
           enabled: true,
           formatter: function () {
+            // @ts-ignore
             const p = this.point as any;
             const showPercent = (p.percentageOfPortfolio ?? 0) >= 2;
             const pct = p.percentageOfPortfolio != null
@@ -141,6 +144,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
     tooltip: {
       useHTML: true,
       formatter: function () {
+        // @ts-ignore
         const p = this.point as any;
         const change =
           p.change != null ? `${p.change >= 0 ? "+" : ""}${p.change.toFixed(2)}%` : "N/A";

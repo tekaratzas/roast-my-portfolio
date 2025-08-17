@@ -1,6 +1,20 @@
 import { CheckIcon } from '@heroicons/react/24/solid'; // or /outline
+import { useEffect, useState } from 'react';
+import { backendService } from '../../services/Backend';
+import PlaidLinkButton from '../components/PlaidButton';
 
 function Home() {
+    const [plaidURL, setPlaidURL] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        backendService.getLinkToken().then((response) => {
+            setPlaidURL(response.linkToken);
+            setIsLoading(false);
+        });
+    }, []);
+
     return (
         <div className="min-h-screen w-full bg-[var(--background)] text-[var(--text-primary)]">
             <div className="max-w-6xl mx-auto px-6 text-center pt-20">
@@ -17,9 +31,7 @@ function Home() {
                 <FeatureList />
 
                 {/* CTA Button */}
-                <button className="px-8 py-4 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--background)] font-semibold rounded-xl transition-all duration-300 hover:scale-105 text-lg">
-                    Start Portfolio Analysis
-                </button>
+                {plaidURL && <PlaidLinkButton plaidURL={plaidURL} isLoading={isLoading} />}
             </div>
         </div>
     )
