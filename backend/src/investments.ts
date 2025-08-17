@@ -2,10 +2,10 @@ import {
   PlaidApi,
   Configuration,
   PlaidEnvironments,
-  InvestmentsHoldingsGetRequest,
   Holding,
   Security,
 } from "plaid";
+import { AuthenticationController } from "./authentication";
 import { Holding as HoldingType } from "./shared/Types";
 
 const APP_PORT = process.env.APP_PORT || 8000;
@@ -15,8 +15,10 @@ const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
 
 export class InvestmentsController {
   private plaidClient: PlaidApi;
+  private authenticationController: AuthenticationController;
 
   constructor() {
+    this.authenticationController = new AuthenticationController();
     const configuration = new Configuration({
       basePath: PlaidEnvironments[PLAID_ENV],
       baseOptions: {
@@ -31,12 +33,17 @@ export class InvestmentsController {
     this.plaidClient = new PlaidApi(configuration);
   }
 
-  public async getHoldings(accessToken: string): Promise<HoldingType[]> {
-    const request: InvestmentsHoldingsGetRequest = {
-      access_token: accessToken,
-    };
-    const response = await this.plaidClient.investmentsHoldingsGet(request);
-    console.log("object :>> ", response.data);
+  public async getHoldings(publicToken: string): Promise<HoldingType[]> {
+    const accessToken =
+      await this.authenticationController.getAccessToken(publicToken);
+
+    const response = await this.plaidClient
+      .investmentsHoldingsGet({ access_token: accessToken })
+      .catch((error) => {
+        console.error("error :>> ", error);
+        throw error;
+      });
+
     return this.formatHoldings(
       response.data.holdings,
       response.data.securities

@@ -37,20 +37,14 @@ export class AuthenticationController {
   }
 
   public async getPlaidOauthLink() {
-    const request = {
-      user: {
-        // This should correspond to a unique id for the current user.
-        client_user_id: "user-id",
-      },
-      client_name: "Plaid Test App",
-      products: [Products.Investments],
-      country_codes: [CountryCode.Us],
-      language: "en",
-      redirect_uri: PLAID_REDIRECT_URI,
-    };
     try {
-      const createTokenResponse =
-        await this.plaidClient.linkTokenCreate(request);
+      const createTokenResponse = await this.plaidClient.linkTokenCreate({
+        client_name: "Roast My Portfolio",
+        products: [Products.Investments],
+        country_codes: [CountryCode.Us],
+        language: "en",
+        redirect_uri: PLAID_REDIRECT_URI,
+      });
       console.log("createTokenResponse :>> ", createTokenResponse);
       const linkToken = createTokenResponse.data.link_token;
 
@@ -59,5 +53,12 @@ export class AuthenticationController {
       // handle error
       console.error("error :>> ", error);
     }
+  }
+
+  public async getAccessToken(publicToken: string) {
+    const response = await this.plaidClient.itemPublicTokenExchange({
+      public_token: publicToken,
+    });
+    return response.data.access_token;
   }
 }
