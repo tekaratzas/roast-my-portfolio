@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
+import { useNavigate } from 'react-router-dom';
 
 function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading: boolean }) {
     const [isOAuthCallback, setIsOAuthCallback] = useState(false);
     const hasInitialized = useRef(false);
+    const navigate = useNavigate();
 
     // Check if we're in an OAuth callback flow
     useEffect(() => {
@@ -14,7 +16,9 @@ function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading:
 
     const onSuccess = useCallback((public_token: string) => {
         console.log("onSuccess", public_token);
-        // Handle the success - you might want to redirect or show success message
+        // save to local storage
+        localStorage.setItem('public_token', public_token);
+        navigate('/investments');
     }, []);
 
     const onExit = useCallback((err: any, metadata: any) => {
@@ -27,7 +31,7 @@ function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading:
     const config: Parameters<typeof usePlaidLink>[0] = {
         token: plaidURL,
         // Only set receivedRedirectUri if we're in an OAuth callback
-        ...(isOAuthCallback && { receivedRedirectUri: window.location.href }),
+        ...(isOAuthCallback && { receivedRedirectUri: window.location.href}),
         onSuccess,
         onExit,
     };

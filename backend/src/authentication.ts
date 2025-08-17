@@ -43,7 +43,7 @@ export class AuthenticationController {
         client_user_id: "user-id",
       },
       client_name: "Plaid Test App",
-      products: [Products.Transactions],
+      products: [Products.Investments],
       country_codes: [CountryCode.Us],
       language: "en",
       redirect_uri: PLAID_REDIRECT_URI,
