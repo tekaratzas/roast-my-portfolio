@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 
 function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading: boolean }) {
     const [isOAuthCallback, setIsOAuthCallback] = useState(false);
+    const hasInitialized = useRef(false);
 
     // Check if we're in an OAuth callback flow
     useEffect(() => {
@@ -33,12 +34,20 @@ function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading:
 
     const { open, ready, error } = usePlaidLink(config);
 
-    // Only auto-open if we're in an OAuth callback
+    // Only auto-open if we're in an OAuth callback and haven't initialized yet
     useEffect(() => {
-        if (ready && isOAuthCallback) {
+        if (ready && isOAuthCallback && !hasInitialized.current) {
+            hasInitialized.current = true;
             open();
         }
     }, [ready, open, isOAuthCallback]);
+
+    // Cleanup effect to prevent multiple initializations
+    useEffect(() => {
+        return () => {
+            hasInitialized.current = false;
+        };
+    }, []);
 
     if (isLoading || !ready) {
         return (
