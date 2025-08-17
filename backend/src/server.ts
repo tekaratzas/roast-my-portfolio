@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import { AuthenticationController } from "./authentication";
 import { InvestmentsController } from "./investments";
-import { InvestmentsResponse, LinkResponse } from "./shared/Types";
+import { PlaidLinkResponse, Holding } from "./shared/Types";
 
 // Add error handling for unhandled errors
 process.on("uncaughtException", (error) => {
@@ -26,30 +26,39 @@ app.use(cookieParser());
 const authenticationController = new AuthenticationController();
 const investmentsController = new InvestmentsController();
 
-app.get("/plaid_oauth_link", async (req: Request, res: Response) => {
-  const linkToken = await authenticationController.getPlaidOauthLink();
-  if (!linkToken) {
-    res.status(500).json({ error: "Failed to get link token" });
-    return;
+app.get(
+  "/plaid_oauth_link",
+  async (req: Request, res: Response): Promise<PlaidLinkResponse | void> => {
+    const linkToken = await authenticationController.getPlaidOauthLink();
+    if (!linkToken) {
+      res.status(500).json({ error: "Failed to get link token" });
+      return;
+    }
+
+    res.json({ linkToken });
   }
+);
 
-  res.json({ linkToken });
-});
+app.get(
+  "/investments",
+  async (
+    req: Request,
+    res: Response
+  ): Promise<{ holdings: Holding[] } | void> => {
+    const publicToken = req.query.publicToken as string;
+    if (!req.query.publicToken) {
+      res.status(400).json({ error: "Access token is required" });
+      return;
+    }
 
-app.get("/investments", async (req: Request, res: Response) => {
-  const publicToken = req.query.publicToken as string;
-  if (!req.query.publicToken) {
-    res.status(400).json({ error: "Access token is required" });
-    return;
+    res.json({
+      holdings: await investmentsController.getHoldings(publicToken),
+    });
   }
-
-  const holdings = await investmentsController.getHoldings(publicToken);
-  const response: InvestmentsResponse = { holdings };
-  res.json(response);
-});
+);
 
 // Add a simple health check endpoint
-app.get("/health", (req, res) => {
+app.get("/health", (_, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 

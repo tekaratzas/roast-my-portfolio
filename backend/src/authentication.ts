@@ -9,8 +9,6 @@ import {
 import dotenv from "dotenv";
 dotenv.config();
 
-const APP_PORT = process.env.APP_PORT || 8000;
-
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
@@ -36,25 +34,20 @@ export class AuthenticationController {
   }
 
   public async getPlaidOauthLink() {
-    try {
-      const createTokenResponse = await this.plaidClient.linkTokenCreate({
-        client_name: "Roast My Portfolio",
-        user: {
-          client_user_id: "user-id",
-        },
-        products: [Products.Investments],
-        country_codes: [CountryCode.Us],
-        language: "en",
-        redirect_uri: PLAID_REDIRECT_URI,
-      });
+    const createTokenResponse = await this.plaidClient.linkTokenCreate({
+      client_name: "Roast My Portfolio",
+      user: {
+        client_user_id: "user-id",
+      },
+      products: [Products.Investments],
+      country_codes: [CountryCode.Us],
+      language: "en",
+      redirect_uri: PLAID_REDIRECT_URI,
+    });
 
-      const linkToken = createTokenResponse.data.link_token;
+    const linkToken = createTokenResponse.data.link_token;
 
-      return linkToken;
-    } catch (error) {
-      // handle error
-      console.error("error :>> ", error);
-    }
+    return linkToken;
   }
 
   public async getAccessToken(publicToken: string) {

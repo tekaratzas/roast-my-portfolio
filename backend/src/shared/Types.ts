@@ -13,3 +13,7 @@ export interface Holding {
   percentage: number;
   name?: string | null;
 }
+
+export interface PlaidLinkResponse {
+  linkToken: string;
+}

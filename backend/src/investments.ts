@@ -8,7 +8,6 @@ import {
 import { AuthenticationController } from "./authentication";
 import { Holding as HoldingType } from "./shared/Types";
 
-const APP_PORT = process.env.APP_PORT || 8000;
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
@@ -44,17 +43,12 @@ export class InvestmentsController {
         throw error;
       });
 
-    console.log("response.data.holdings :>> ", response.data.holdings);
-    console.log("response.data.securities :>> ", response.data.securities);
-
     return this.formatHoldings(
       response.data.holdings,
       response.data.securities
     );
   }
 
-  // Get the total monentary value of the holdings
-  // and return the percentage of the total value for each holding
   private formatHoldings(
     holdings: Holding[],
     securities: Security[]
