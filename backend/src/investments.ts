@@ -68,12 +68,15 @@ export class InvestmentsController {
       const security = securityMap.get(holding.security_id);
       return {
         ticker: security?.ticker_symbol,
+        name: security?.name,
         security_id: holding.security_id,
         sector: security?.sector,
         percentage: holding.institution_value / totalValue,
       };
     });
 
-    return formattedHoldings;
+    return {
+      holdings: formattedHoldings,
+    };
   }
 }

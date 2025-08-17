@@ -47,7 +47,7 @@ export class AuthenticationController {
         language: "en",
         redirect_uri: PLAID_REDIRECT_URI,
       });
-      console.log("createTokenResponse :>> ", createTokenResponse);
+
       const linkToken = createTokenResponse.data.link_token;
 
       return linkToken;

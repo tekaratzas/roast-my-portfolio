@@ -27,12 +27,11 @@ const investmentsController = new InvestmentsController();
 
 app.get("/plaid_oauth_link", async (req: Request, res: Response) => {
   const linkToken = await authenticationController.getPlaidOauthLink();
-  console.log("linkToken :>> ", linkToken);
+
   res.json({ linkToken });
 });
 
 app.get("/investments", async (req: Request, res: Response) => {
-  console.log("req :>> ", req.query);
   const publicToken = req.query.publicToken as string;
   if (!req.query.publicToken) {
     res.status(400).json({ error: "Access token is required" });
