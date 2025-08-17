@@ -43,6 +43,9 @@ export class InvestmentsController {
         throw error;
       });
 
+    console.log("response.data.holdings :>> ", response.data.holdings);
+    console.log("response.data.securities :>> ", response.data.securities);
+
     return this.formatHoldings(
       response.data.holdings,
       response.data.securities
