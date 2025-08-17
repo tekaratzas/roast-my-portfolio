@@ -38,12 +38,6 @@ function InvestmentsPage() {
         }   
     }, []);
 
-    function replaceUrlParam(encoded: string) {
-        const url = new URL(window.location.href);
-        url.searchParams.set(QUERY_KEY, encoded);
-        window.history.replaceState({}, "", url.toString());
-    }
-
     return (
         <div>
             <h1>Investments</h1>
