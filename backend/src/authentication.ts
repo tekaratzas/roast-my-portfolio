@@ -21,7 +21,6 @@ export class AuthenticationController {
   private plaidClient: PlaidApi;
 
   constructor() {
-    console.log(PLAID_CLIENT_ID, PLAID_SECRET);
     const configuration = new Configuration({
       basePath: PlaidEnvironments[PLAID_ENV],
       baseOptions: {
