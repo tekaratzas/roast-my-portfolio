@@ -1,17 +1,19 @@
-import express, { Request, Response } from 'express';
-import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import 'dotenv/config';
+import express, { Request, Response } from "express";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import "dotenv/config";
+import { AuthenticationController } from "./authentication";
+import { InvestmentsController } from "./investments";
 
 // Add error handling for unhandled errors
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
-    process.exit(1);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    process.exit(1);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
 });
 
 const app = express();
@@ -20,24 +22,40 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const authenticationController = new AuthenticationController();
+const investmentsController = new InvestmentsController();
 
-app.post('/stuff', async (req: Request, res: Response) => {
-   res.json({ message: 'Hello, world!' });
+app.get("/plaid_oauth_link", async (req: Request, res: Response) => {
+  const linkToken = await authenticationController.getPlaidOauthLink();
+  console.log("linkToken :>> ", linkToken);
+  res.json({ linkToken });
+});
+
+app.get("/investments", async (req: Request, res: Response) => {
+  console.log("req :>> ", req);
+  if (!req.body.accessToken) {
+    res.status(400).json({ error: "Access token is required" });
+    return;
+  }
+  const holdings = await investmentsController.getHoldings(
+    req.body.accessToken
+  );
+  res.json({ holdings });
 });
 
 // Add a simple health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 const server = app.listen(3001, () => {
-    console.log('Server is running on port 3001');
+  console.log("Server is running on port 3001");
 });
 
 // Add graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully');
-    server.close(() => {
-        console.log('Process terminated');
-    });
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully");
+  server.close(() => {
+    console.log("Process terminated");
+  });
 });
