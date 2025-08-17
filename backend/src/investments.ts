@@ -75,7 +75,9 @@ export class InvestmentsController {
         name: security?.name,
         securityId: holding.security_id,
         sector: security?.sector,
-        percentage: holding.institution_value / totalValue,
+        percentage: parseFloat(
+          ((holding.institution_value / totalValue) * 100).toFixed(2)
+        ),
       };
     });
   }
