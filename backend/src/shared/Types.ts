@@ -11,4 +11,5 @@ export interface Holding {
   securityId: string;
   sector?: string | null;
   percentage: number;
+  name?: string | null;
 }
