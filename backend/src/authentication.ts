@@ -54,4 +54,11 @@ export class AuthenticationController {
       console.error("error :>> ", error);
     }
   }
+
+  public async getAccessToken(publicToken: string) {
+    const response = await this.plaidClient.itemPublicTokenExchange({
+      public_token: publicToken,
+    });
+    return response.data.access_token;
+  }
 }
