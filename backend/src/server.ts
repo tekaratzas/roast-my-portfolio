@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import { AuthenticationController } from "./authentication";
 import { InvestmentsController } from "./investments";
-import { LinkResponse } from "./shared/Types";
+import { InvestmentsResponse, LinkResponse } from "./shared/Types";
 
 // Add error handling for unhandled errors
 process.on("uncaughtException", (error) => {
@@ -43,10 +43,14 @@ app.get("/investments", async (req: Request, res: Response) => {
     res.status(400).json({ error: "Access token is required" });
     return;
   }
+  
   const holdings = await investmentsController.getHoldings(
     req.body.accessToken
   );
-  res.json({ holdings });
+
+  const response: InvestmentsResponse = { holdings };
+
+  res.json(response);
 });
 
 // Add a simple health check endpoint

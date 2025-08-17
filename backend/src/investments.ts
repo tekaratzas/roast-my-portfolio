@@ -6,6 +6,7 @@ import {
   Holding,
   Security,
 } from "plaid";
+import { Holding as HoldingType } from "./shared/Types";
 
 const APP_PORT = process.env.APP_PORT || 8000;
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
@@ -30,7 +31,7 @@ export class InvestmentsController {
     this.plaidClient = new PlaidApi(configuration);
   }
 
-  public async getHoldings(accessToken: string) {
+  public async getHoldings(accessToken: string): Promise<HoldingType[]> {
     const request: InvestmentsHoldingsGetRequest = {
       access_token: accessToken,
     };
@@ -44,7 +45,7 @@ export class InvestmentsController {
 
   // Get the total monentary value of the holdings
   // and return the percentage of the total value for each holding
-  private formatHoldings(holdings: Holding[], securities: Security[]) {
+  private formatHoldings(holdings: Holding[], securities: Security[]): HoldingType[] {
     const securityMap = new Map(
       securities.map((security) => [security.security_id, security])
     );
@@ -54,12 +55,12 @@ export class InvestmentsController {
       0
     );
 
-    const formattedHoldings = holdings.map((holding) => {
+    const formattedHoldings: HoldingType[] = holdings.map((holding) => {
       const security = securityMap.get(holding.security_id);
       return {
-        ticker: security?.ticker_symbol,
-        security_id: holding.security_id,
-        sector: security?.sector,
+        ticker: security?.ticker_symbol || undefined,
+        securityId: holding.security_id,
+        sector: security?.sector || undefined,
         percentage: holding.institution_value / totalValue,
       };
     });
