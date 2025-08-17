@@ -1,6 +1,5 @@
 // import './App.css'
 // import StockBubbleMap from "./pages/StockBubbleMap";
-// import type { Stock } from "./pages/StockBubbleMap";
 
 // const stocks: Stock[] = [
 //   { sector: "Technology", percentageOfPortfolio: 9, name: "AAPL", value: 3500, change: 1.2, price: 228.3 },
@@ -17,7 +16,7 @@
 import Home from './pages/Home'
 import InvestmentsPage from './pages/Investments'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
+import StockBubbleMap from "./pages/StockBubbleMap";
 
 export default function App() {
   return (
@@ -25,6 +24,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/investments" element={<InvestmentsPage />} />
+        <Route path="/stock-bubble-map" element={<StockBubbleMap stocks={[]} />} />
         <Route path="*" element={<div>Not Found</div>} />
       </Routes>
     </Router>

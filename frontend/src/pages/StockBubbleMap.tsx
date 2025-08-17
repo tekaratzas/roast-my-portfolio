@@ -5,32 +5,24 @@ import HighchartsReact from "highcharts-react-official";
 // Keep your import as requested
 // @ts-ignore
 import HC_more from "highcharts/highcharts-more";
-
-export interface Stock {
-  name: string;                   // ticker/symbol
-  percentageOfPortfolio: number;  // 0..100
-  sector: string;
-  value?: number;                 // market cap in billions (optional)
-  change?: number;                // daily % change
-  price?: number;
-}
+import type { Holding } from "../../../shared/Types";
 
 type Props = {
-  stocks: Stock[];
+  stocks: Holding[];
 };
 
 const QUERY_KEY = "s";
 
 // Encode stocks as JSON in query string
-function encodeStocks(stocks: Stock[]): string {
+function encodeStocks(stocks: Holding[]): string {
   return encodeURIComponent(JSON.stringify(stocks));
 }
 
 // Decode stocks back
-function decodeStocks(param: string | null): Stock[] | null {
+function decodeStocks(param: string | null): Holding[] | null {
   if (!param) return null;
   try {
-    const arr = JSON.parse(decodeURIComponent(param)) as Stock[];
+    const arr = JSON.parse(decodeURIComponent(param)) as Holding[];
     if (Array.isArray(arr)) return arr;
     return null;
   } catch {
@@ -80,13 +72,11 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
   // Group by sector for packed-bubble series
   const bySector: Record<string, Highcharts.PointOptionsObject[]> = {};
   effectiveStocks.forEach((s) => {
-    if (!bySector[s.sector]) bySector[s.sector] = [];
-    bySector[s.sector].push({
-      name: s.name,
-      value: s.value ?? s.percentageOfPortfolio,
-      change: s.change,
-      price: s.price,
-      percentageOfPortfolio: s.percentageOfPortfolio
+    if (!bySector[s.sector ?? ""]) bySector[s.sector ?? ""] = [];
+    bySector[s.sector ?? ""].push({
+      name: s.ticker ?? "",
+      value: s.percentage,
+      percentage: s.percentage
     } as any);
   });
 
@@ -129,9 +119,9 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
           formatter: function () {
             // @ts-ignore
             const p = this.point as any;
-            const showPercent = (p.percentageOfPortfolio ?? 0) >= 2;
-            const pct = p.percentageOfPortfolio != null
-              ? `${p.percentageOfPortfolio.toFixed(1)}%`
+            const showPercent = (p.percentage ?? 0) >= 2;
+            const pct = p.percentage != null
+              ? `${p.percentage.toFixed(1)}%`
               : null;
             return showPercent && pct
               ? `${p.name}<br/><span style="font-size:14px; color:#6b7280">${pct}</span>`
@@ -150,7 +140,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
           p.change != null ? `${p.change >= 0 ? "+" : ""}${p.change.toFixed(2)}%` : "N/A";
         const price = p.price != null ? `$${p.price.toFixed(2)}` : "N/A";
         const cap = p.value != null ? `${Number(p.value).toLocaleString()}B` : "—";
-        const pct = p.percentageOfPortfolio != null ? `${p.percentageOfPortfolio.toFixed(2)}%` : "—";
+        const pct = p.percentage != null ? `${p.percentage.toFixed(2)}%` : "—";
         const color = p.change > 0 ? "#2ecc71" : p.change < 0 ? "#c0392b" : "#7f8c8d";
         return `
           <div style="min-width:180px">
