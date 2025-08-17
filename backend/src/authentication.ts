@@ -40,6 +40,9 @@ export class AuthenticationController {
     try {
       const createTokenResponse = await this.plaidClient.linkTokenCreate({
         client_name: "Roast My Portfolio",
+        user: {
+          client_user_id: "user-id",
+        },
         products: [Products.Investments],
         country_codes: [CountryCode.Us],
         language: "en",
