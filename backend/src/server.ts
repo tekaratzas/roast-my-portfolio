@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import { AuthenticationController } from "./authentication";
 import { InvestmentsController } from "./investments";
-import { PlaidLinkResponse, Holding } from "./shared/Types";
+import { LinkResponse, Holding } from "./shared/Types";
 
 // Add error handling for unhandled errors
 process.on("uncaughtException", (error) => {
@@ -28,7 +28,7 @@ const investmentsController = new InvestmentsController();
 
 app.get(
   "/plaid_oauth_link",
-  async (req: Request, res: Response): Promise<PlaidLinkResponse | void> => {
+  async (req: Request, res: Response): Promise<LinkResponse | void> => {
     const linkToken = await authenticationController.getPlaidOauthLink();
     if (!linkToken) {
       res.status(500).json({ error: "Failed to get link token" });

@@ -1,19 +1,14 @@
 export interface LinkResponse {
-  linkToken: string;
+    linkToken: string;
 }
 
 export interface InvestmentsResponse {
-  holdings: Holding[];
+    holdings: Holding[];
 }
 
 export interface Holding {
-  ticker?: string | null;
-  securityId: string;
-  sector?: string | null;
-  percentage: number;
-  name?: string | null;
-}
-
-export interface PlaidLinkResponse {
-  linkToken: string;
+    ticker: string | undefined;
+    securityId: string;
+    sector: string | undefined;
+    percentage: number;
 }
