@@ -40,7 +40,7 @@ app.get("/plaid_oauth_link", async (req: Request, res: Response) => {
 app.get("/investments", async (req: Request, res: Response) => {
   console.log("req :>> ", req);
   if (!req.body.accessToken) {
-    res.status(400).json({ error: "Access token is required" });
+    res.status(400).json({ eroror: "Access token is required" });
     return;
   }
   
