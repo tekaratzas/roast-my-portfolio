@@ -7,6 +7,7 @@ export interface InvestmentsResponse {
 }
 
 export interface Holding {
+  name: string;
   ticker?: string | null;
   securityId: string;
   sector?: string | null;
