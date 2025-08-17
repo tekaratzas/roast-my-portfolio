@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import { AuthenticationController } from "./authentication";
 import { InvestmentsController } from "./investments";
+import { InvestmentsResponse, LinkResponse } from "./shared/Types";
 
 // Add error handling for unhandled errors
 process.on("uncaughtException", (error) => {
@@ -27,6 +28,10 @@ const investmentsController = new InvestmentsController();
 
 app.get("/plaid_oauth_link", async (req: Request, res: Response) => {
   const linkToken = await authenticationController.getPlaidOauthLink();
+  if (!linkToken) {
+    res.status(500).json({ error: "Failed to get link token" });
+    return;
+  }
 
   res.json({ linkToken });
 });
@@ -39,7 +44,8 @@ app.get("/investments", async (req: Request, res: Response) => {
   }
 
   const holdings = await investmentsController.getHoldings(publicToken);
-  res.json({ holdings });
+  const response: InvestmentsResponse = { holdings };
+  res.json(response);
 });
 
 // Add a simple health check endpoint
