@@ -15,14 +15,14 @@ const QUERY_KEY = "s";
 
 // Encode stocks as JSON in query string
 function encodeStocks(stocks: Holding[]): string {
-  return encodeURIComponent(JSON.stringify(stocks));
+  return btoa(encodeURIComponent(JSON.stringify(stocks)));
 }
 
 // Decode stocks back
 function decodeStocks(param: string | null): Holding[] | null {
   if (!param) return null;
   try {
-    const arr = JSON.parse(decodeURIComponent(param)) as Holding[];
+    const arr = JSON.parse(decodeURIComponent(atob(param))) as Holding[];
     console.log(arr);
     if (Array.isArray(arr)) return arr;
     return null;
@@ -75,8 +75,9 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
   effectiveStocks.forEach((s) => {
     if (!bySector[s.sector ?? ""]) bySector[s.sector ?? ""] = [];
     bySector[s.sector ?? ""].push({
+      ticker: s.ticker,
       name: s.name,
-      value: s.percentage * 100,
+      value: s.percentage * 1000,
       percentage: s.percentage,
       price: s.price,
     } as any);
@@ -92,7 +93,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
   }));
 
   const options: Highcharts.Options = {
-    chart: { type: "packedbubble", height: "100%", backgroundColor: "#f7f8fa" },
+    chart: { type: "packedbubble", height: (8.3 / 16 * 100) + '%', backgroundColor: "#f7f8fa" },
     title: {
       text: "My Holdings",
       align: "center",
@@ -113,28 +114,85 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
         // @ts-ignore
         zMin: 0,
         zMax: 4000,
-        layoutAlgorithm: { splitSeries: false, gravitationalConstant: 0.02 },
+        layoutAlgorithm: { splitSeries: false, gravitationalConstant: 0.002 },
         lineWidth: 1,
         lineColor: "rgba(0,0,0,0.15)",
         dataLabels: {
           enabled: true,
+          useHTML: false,
+          allowOverlap: false,
           formatter: function () {
             // @ts-ignore
             const p = this.point as any;
-            const showPercent = (p.percentage ?? 0) >= 2;
+        
+            // ---------- helpers ----------
+            const toAcronym = (str: string) => {
+              const initials = str
+                .split(/[\s\-_/]+/)
+                .filter(Boolean)
+                .map((w) => w[0])
+                .join("")
+                .toUpperCase();
+              return initials.length >= 2 && initials.length <= 6 ? initials : null;
+            };
+        
+            const middleEllipsis = (str: string, max: number) => {
+              if (str.length <= max) return str;
+              if (max <= 3) return str.slice(0, max);
+              const keep = max - 1;
+              const left = Math.ceil(keep / 2);
+              const right = Math.floor(keep / 2);
+              return `${str.slice(0, left)}…${str.slice(-right)}`;
+            };
+        
+            // ---------- character budget (like you had) ----------
+            // Your value is percentage * 1000 ; zMax is 4000 in your options.
+            const z = Number(p.value) || 0;
+            const zMax = 4000;
+            const maxChars = Math.max(4, Math.min(16, Math.round(4 + (z / zMax) * 12)));
+        
+            // Choose final display text
+            let display: string = (p.ticker || p.name) as string;
+            const hasDelims = /[\s\-_/]/.test(display);
+            const acronym = hasDelims ? toAcronym(display) : null;
+            if (acronym && acronym.length <= maxChars) {
+              display = acronym;
+            } else {
+              display = middleEllipsis(display, maxChars);
+            }
+        
+            // ---------- dynamic font sizing ----------
+            // Base font grows with bubble size (square-root for visual balance)
+            const sizeFactor = Math.sqrt(Math.min(1, z / zMax));        // 0..1
+            const baseFont = 12 + 10 * sizeFactor;                      // ~12..22px
+        
+            // Penalize long text gently (keeps short tickers big, long names a bit smaller)
+            const len = display.length || 1;
+            // lengthScale ~1 for <=6 chars, down to ~0.65 for very long labels
+            const lengthScale = Math.max(0.65, Math.min(1, 6 / len + 0.35));
+        
+            const labelFontPx = Math.max(10, Math.min(22, Math.round(baseFont * lengthScale)));
+            const pctFontPx = Math.max(9, Math.min(18, Math.round(labelFontPx * 0.8)));
+        
+            // % line only on bigger bubbles (>= 2%)
+            const showPercent = (p.percentage ?? 0) >= 0.02; // percentage is 0..1; 2% threshold
             const pct =
-              p.percentage != null ? `${p.percentage.toFixed(1)}%` : null;
+              p.percentage != null ? `${(p.percentage).toFixed(1)}%` : null;
+        
+            // Return SVG text with inline font sizes
             return showPercent && pct
-              ? `${p.name}<br/><span style="font-size:14px; color:#6b7280">${pct}</span>`
-              : `${p.name}`;
+              ? `<tspan style="font-size:${labelFontPx}px">${display}</tspan><br/>
+                 <tspan style="font-size:${pctFontPx}px; fill:#6b7280">${pct}</tspan>`
+              : `<tspan style="font-size:${labelFontPx}px">${display}</tspan>`;
           },
           style: {
             color: "#111827",
             textOutline: "none",
+            // this is just a fallback; per-point sizes come from <tspan style="font-size:...">
             fontSize: "18px",
-            fontWeight: "500",
-          },
-        },
+            fontWeight: "500"
+          }
+        },        
       },
     },
     tooltip: {
@@ -142,22 +200,19 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
       formatter: function () {
         // @ts-ignore
         const p = this.point as any;
-        console.log(p);
         const change =
           p.change != null
             ? `${p.change >= 0 ? "+" : ""}${p.change.toFixed(2)}%`
             : "N/A";
         const price = p.price != null ? `$${p.price.toFixed(2)}` : "N/A";
-        const cap =
-          p.value != null ? `${Number(p.value).toLocaleString()}B` : "—";
         const pct = p.percentage != null ? `${p.percentage.toFixed(2)}%` : "—";
         const color =
           p.change > 0 ? "#2ecc71" : p.change < 0 ? "#c0392b" : "#7f8c8d";
         return `
           <div style="min-width:180px">
             <div style="font-weight:600; margin-bottom:4px">${p.name}</div>
+            <div><b>Ticker:</b> ${p.ticker || "N/A"}</div>
             <div><b>Price:</b> ${price}</div>
-            <div><b>Market Cap:</b> ${cap}</div>
             <div><b>Portfolio:</b> ${pct}</div>
             <div><b>Change:</b> <span style="color:${color}">${change}</span></div>
           </div>
