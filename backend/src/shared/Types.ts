@@ -4,10 +4,6 @@ export interface LinkResponse {
 
 export interface InvestmentsResponse {
   holdings: Holding[];
-  /**
-   * The total profit and loss of the portfolio
-   */
-  totalPL: number;
 }
 
 export interface Holding {

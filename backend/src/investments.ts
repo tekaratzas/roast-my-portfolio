@@ -106,13 +106,27 @@ export class InvestmentsController {
     holdings: Holding[],
     securities: Security[]
   ): InvestmentsResponse {
-    const securityMap = new Map(
-      securities.map((security) => [security.security_id, security])
+    let totalValue = 0;
+    // Merge holdings by security_id
+    const mergedHoldings = holdings.reduce(
+      (map, holding) => {
+        totalValue += holding.institution_value || 0;
+
+        if (!map.has(holding.security_id)) {
+          map.set(holding.security_id, holding);
+          return map;
+        }
+        const existing = map.get(holding.security_id)!;
+        existing.quantity += holding.quantity;
+        existing.institution_value += holding.institution_value || 0;
+
+        return map;
+      },
+      new Map() as Map<string, Holding>
     );
 
-    const totalValue = holdings.reduce(
-      (acc, holding) => acc + holding.institution_value,
-      0
+    const securityMap = new Map(
+      securities.map((security) => [security.security_id, security])
     );
 
     const totalPL = holdings.reduce(
@@ -126,7 +140,7 @@ export class InvestmentsController {
     );
 
     return {
-      holdings: holdings.map((holding) => {
+      holdings: Array.from(mergedHoldings.values()).map((holding) => {
         const security = securityMap.get(holding.security_id);
 
         const holdingPL =
