@@ -15,14 +15,14 @@ const QUERY_KEY = "s";
 
 // Encode stocks as JSON in query string
 function encodeStocks(stocks: Holding[]): string {
-  return encodeURIComponent(JSON.stringify(stocks));
+  return btoa(encodeURIComponent(JSON.stringify(stocks)));
 }
 
 // Decode stocks back
 function decodeStocks(param: string | null): Holding[] | null {
   if (!param) return null;
   try {
-    const arr = JSON.parse(decodeURIComponent(param)) as Holding[];
+    const arr = JSON.parse(decodeURIComponent(atob(param))) as Holding[];
     console.log(arr);
     if (Array.isArray(arr)) return arr;
     return null;
@@ -148,8 +148,6 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
             ? `${p.change >= 0 ? "+" : ""}${p.change.toFixed(2)}%`
             : "N/A";
         const price = p.price != null ? `$${p.price.toFixed(2)}` : "N/A";
-        const cap =
-          p.value != null ? `${Number(p.value).toLocaleString()}B` : "—";
         const pct = p.percentage != null ? `${p.percentage.toFixed(2)}%` : "—";
         const color =
           p.change > 0 ? "#2ecc71" : p.change < 0 ? "#c0392b" : "#7f8c8d";
@@ -157,7 +155,6 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
           <div style="min-width:180px">
             <div style="font-weight:600; margin-bottom:4px">${p.name}</div>
             <div><b>Price:</b> ${price}</div>
-            <div><b>Market Cap:</b> ${cap}</div>
             <div><b>Portfolio:</b> ${pct}</div>
             <div><b>Change:</b> <span style="color:${color}">${change}</span></div>
           </div>
