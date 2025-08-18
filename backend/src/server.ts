@@ -83,7 +83,6 @@ function validateEnvironmentVariables() {
     PLAID_CLIENT_ID: process.env.PLAID_CLIENT_ID,
     PLAID_SECRET: process.env.PLAID_SECRET,
     PLAID_ENV: process.env.PLAID_ENV,
-    PLAID_REDIRECT_URI: process.env.PLAID_REDIRECT_URI,
   };
 
   const missingVars = Object.entries(requiredEnvVars)
