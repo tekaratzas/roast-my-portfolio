@@ -3,11 +3,12 @@ import { usePlaidLink } from 'react-plaid-link';
 import { useNavigate, type NavigateFunction } from 'react-router-dom';
 import { backendService } from '../../services/Backend';
 import type { Holding } from '../../../shared/Types';
+import type { InvestmentsResponse } from '../shared/Types';
 
 const QUERY_KEY = "s";
 
-function encodeStocks(stocks: Holding[]): string {
-    return btoa(encodeURIComponent(JSON.stringify(stocks)));
+function encodeStocks(holdings: InvestmentsResponse): string {
+    return btoa(encodeURIComponent(JSON.stringify(holdings)));
 }
 
 function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading: boolean }) {
@@ -88,7 +89,7 @@ function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading:
 function fetchInvestments(publicToken: string, navigate: NavigateFunction) {
     backendService.getInvestments(publicToken).then((response) => {
         console.log(response);
-        const encoded = encodeStocks(response.holdings);
+        const encoded = encodeStocks(response);
 
         const params = new URLSearchParams();
         params.set(QUERY_KEY, encoded); // default encoding
