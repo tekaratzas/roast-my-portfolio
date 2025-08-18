@@ -6,6 +6,9 @@ import { AuthenticationController } from "./authentication";
 import { InvestmentsController } from "./investments";
 import { LinkResponse, Holding } from "./shared/Types";
 
+// Run validation
+validateEnvironmentVariables();
+
 // Add error handling for unhandled errors
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
@@ -73,3 +76,28 @@ process.on("SIGTERM", () => {
     console.log("Process terminated");
   });
 });
+
+// Validate required environment variables
+function validateEnvironmentVariables() {
+  const requiredEnvVars = {
+    PLAID_CLIENT_ID: process.env.PLAID_CLIENT_ID,
+    PLAID_SECRET: process.env.PLAID_SECRET,
+    PLAID_ENV: process.env.PLAID_ENV,
+    PLAID_REDIRECT_URI: process.env.PLAID_REDIRECT_URI,
+  };
+
+  const missingVars = Object.entries(requiredEnvVars)
+    .filter(([_, value]) => !value)
+    .map(([key, _]) => key);
+
+  if (missingVars.length > 0) {
+    console.error('❌ Missing required environment variables:');
+    missingVars.forEach(varName => {
+      console.error(`   - ${varName}`);
+    });
+    console.error('\nPlease check your .env file and ensure all required variables are set.');
+    process.exit(1);
+  }
+
+  console.log('✅ All required environment variables are present');
+}
