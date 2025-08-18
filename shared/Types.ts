@@ -4,15 +4,40 @@ export interface LinkResponse {
 
 export interface InvestmentsResponse {
   holdings: Holding[];
+  /**
+   * The total profit and loss of the portfolio
+   */
+  totalPL: number;
 }
 
 export interface Holding {
+  /**
+   * The name of the security
+   */
   name: string;
+  /**
+   * The ticker symbol of the security
+   */
   ticker?: string | null;
-  securityId: string;
+  /**
+   * The sector of the security
+   */
   sector?: string | null;
+  /**
+   * The security ID of the security
+   */
+  securityId: string;
+  /**
+   * The percentage of the portfolio that the security represents
+   */
   percentage: number;
+  /**
+   * The price of the security
+   */
   price?: number | null;
+  /**
+   * The percentage of the portfolio that the security represents
+   */
   percentagePL?: number | null;
 }
 

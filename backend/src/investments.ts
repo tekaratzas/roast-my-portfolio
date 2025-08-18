@@ -6,7 +6,7 @@ import {
   Security,
 } from "plaid";
 import { AuthenticationController } from "./authentication";
-import { Holding as HoldingType } from "./shared/Types";
+import { Holding as HoldingType, InvestmentsResponse } from "./shared/Types";
 // import {
 //   DefaultApi,
 //   ListTickers200Response,
@@ -61,7 +61,7 @@ export class InvestmentsController {
     // this.polygonClient = restClient(POLYGON_API_KEY, "https://api.polygon.io");
   }
 
-  public async getHoldings(publicToken: string): Promise<HoldingType[]> {
+  public async getHoldings(publicToken: string): Promise<InvestmentsResponse> {
     console.log("current counter:", this.counter, "out of", MAX_REQUESTS);
     if (this.counter++ > MAX_REQUESTS) {
       throw new Error("Too many requests");
@@ -97,7 +97,7 @@ export class InvestmentsController {
   private formatHoldings(
     holdings: Holding[],
     securities: Security[]
-  ): HoldingType[] {
+  ): InvestmentsResponse {
     const securityMap = new Map(
       securities.map((security) => [security.security_id, security])
     );
@@ -119,26 +119,29 @@ export class InvestmentsController {
       0
     );
 
-    return holdings.map((holding) => {
-      const security = securityMap.get(holding.security_id);
-      const holdingPL =
-        ((security?.close_price || holding.institution_price) -
-          (holding.cost_basis || 0)) *
-        holding.quantity;
-      return {
-        ticker: security?.ticker_symbol || undefined,
-        name: security?.name || `Security ${holding.security_id}`,
-        securityId: holding.security_id,
-        sector: security?.sector || undefined,
-        percentage: parseFloat(
-          ((holding.institution_value / totalValue) * 100).toFixed(2)
-        ),
-        price: security?.close_price || holding.institution_price,
-        change:
-          totalPL !== 0
-            ? parseFloat(((holdingPL / totalPL) * 100).toFixed(2))
-            : 0,
-      };
-    });
+    return {
+      holdings: holdings.map((holding) => {
+        const security = securityMap.get(holding.security_id);
+        const holdingPL =
+          ((security?.close_price || holding.institution_price) -
+            (holding.cost_basis || 0)) *
+          holding.quantity;
+        return {
+          ticker: security?.ticker_symbol || undefined,
+          name: security?.name || `Security ${holding.security_id}`,
+          securityId: holding.security_id,
+          sector: security?.sector || undefined,
+          percentage: parseFloat(
+            ((holding.institution_value / totalValue) * 100).toFixed(2)
+          ),
+          price: security?.close_price || holding.institution_price,
+          percentagePL:
+            totalPL !== 0
+              ? parseFloat(((holdingPL / totalPL) * 100).toFixed(2))
+              : 0,
+        };
+      }),
+      totalPL,
+    };
   }
 }
