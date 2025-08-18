@@ -23,6 +23,7 @@ function decodeStocks(param: string | null): Holding[] | null {
   if (!param) return null;
   try {
     const arr = JSON.parse(decodeURIComponent(param)) as Holding[];
+    console.log(arr);
     if (Array.isArray(arr)) return arr;
     return null;
   } catch {
@@ -38,7 +39,7 @@ function replaceUrlParam(encoded: string) {
 
 const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
   // Decode from URL if present
-  const decoded = React.useMemo(() => {
+  const decoded: Holding[] | null = React.useMemo(() => {
     if (typeof window === "undefined") return null;
     const url = new URL(window.location.href);
     return decodeStocks(url.searchParams.get(QUERY_KEY));
@@ -74,10 +75,10 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
   effectiveStocks.forEach((s) => {
     if (!bySector[s.sector ?? ""]) bySector[s.sector ?? ""] = [];
     bySector[s.sector ?? ""].push({
-      name: s.ticker ?? "",
-      value: s.percentage,
-      radius: String(s.percentage),
-    });
+      name: s.name,
+      value: s.percentage * 100,
+      percentage: s.percentage,
+    } as any);
   });
 
   const series: Highcharts.SeriesPackedbubbleOptions[] = Object.entries(
@@ -165,7 +166,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
   };
 
   return (
-    <div style={{ position: "relative", height: "100%", width: "100vh" }}>
+    <div className="w-full max-h-screen relative">
       <button
         onClick={copyShareUrl}
         style={{
@@ -184,7 +185,9 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
       >
         Share
       </button>
-      <HighchartsReact highcharts={Highcharts} options={options} />
+      <div className="w-full h-full">
+        <HighchartsReact highcharts={Highcharts} options={options} />
+      </div>
     </div>
   );
 };

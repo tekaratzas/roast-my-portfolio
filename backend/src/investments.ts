@@ -76,10 +76,10 @@ export class InvestmentsController {
     return holdings.map((holding) => {
       const security = securityMap.get(holding.security_id);
       return {
-        ticker: security?.ticker_symbol,
-        name: security?.name,
+        ticker: security?.ticker_symbol || undefined,
+        name: security?.name || `Security ${holding.security_id}`,
         securityId: holding.security_id,
-        sector: security?.sector,
+        sector: security?.sector || undefined,
         percentage: parseFloat(
           ((holding.institution_value / totalValue) * 100).toFixed(2)
         ),
