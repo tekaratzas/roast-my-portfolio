@@ -13,6 +13,7 @@ export interface Holding {
   sector?: string | null;
   percentage: number;
   price?: number | null;
+  percentagePL?: number | null;
 }
 
 export interface PlaidLinkResponse {
