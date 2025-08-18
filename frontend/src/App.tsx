@@ -14,7 +14,6 @@
 // }
 
 import Home from './pages/Home'
-import InvestmentsPage from './pages/Investments'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import StockBubbleMap from "./pages/StockBubbleMap";
 
@@ -23,7 +22,6 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/investments" element={<InvestmentsPage />} />
         <Route path="/stock-bubble-map" element={<StockBubbleMap stocks={[]} />} />
         <Route path="*" element={<div>Not Found</div>} />
       </Routes>

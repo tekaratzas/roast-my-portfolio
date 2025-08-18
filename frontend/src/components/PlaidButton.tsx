@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, type NavigateFunction } from 'react-router-dom';
+import { backendService } from '../../services/Backend';
+import type { Holding } from '../../../shared/Types';
+
+const QUERY_KEY = "s";
+
+function encodeStocks(stocks: Holding[]): string {
+    return encodeURIComponent(JSON.stringify(stocks));
+}
 
 function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading: boolean }) {
     const [isOAuthCallback, setIsOAuthCallback] = useState(false);
@@ -16,9 +24,7 @@ function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading:
 
     const onSuccess = useCallback((public_token: string) => {
         console.log("onSuccess", public_token);
-        // save to local storage
-        localStorage.setItem('public_token', public_token);
-        navigate('/investments');
+        fetchInvestments(public_token, navigate);
     }, []);
 
     const onExit = useCallback((err: any, metadata: any) => {
@@ -31,7 +37,7 @@ function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading:
     const config: Parameters<typeof usePlaidLink>[0] = {
         token: plaidURL,
         // Only set receivedRedirectUri if we're in an OAuth callback
-        ...(isOAuthCallback && { receivedRedirectUri: window.location.href}),
+        ...(isOAuthCallback && { receivedRedirectUri: window.location.href }),
         onSuccess,
         onExit,
     };
@@ -70,13 +76,31 @@ function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading:
     }
 
     return (
-        <button 
-            className="px-8 py-4 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--background)] font-semibold rounded-xl transition-all duration-300 hover:scale-105 text-lg" 
+        <button
+            className="px-8 py-4 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--background)] font-semibold rounded-xl transition-all duration-300 hover:scale-105 text-lg"
             onClick={() => open()}
         >
             Start Portfolio Analysis
         </button>
     )
+}
+
+function fetchInvestments(publicToken: string, navigate: NavigateFunction) {
+    backendService.getInvestments(publicToken).then((response) => {
+        console.log(response);
+        const encoded = encodeStocks(response.holdings);
+
+        const params = new URLSearchParams();
+        params.set(QUERY_KEY, encoded); // default encoding
+
+        navigate(
+            {
+                pathname: "/stock-bubble-map",
+                search: `?${params.toString()}`,
+            },
+            { replace: true } // same semantics as replaceState
+        );
+    });
 }
 
 export default PlaidLinkButton;
