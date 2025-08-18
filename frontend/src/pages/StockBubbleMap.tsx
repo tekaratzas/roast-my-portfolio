@@ -3,27 +3,24 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 // @ts-ignore
 import HC_treemap from "highcharts/modules/treemap";
-import type { Holding, InvestmentsResponse } from "../../../shared/Types";
+import type { InvestmentsResponse } from "../../../shared/Types";
 
 
 type Props = {
-  stocks: Holding[];
+  stocks: InvestmentsResponse;
 };
 
 const QUERY_KEY = "s";
 
-// Encode stocks as JSON in query string
-function encodeStocks(stocks: Holding[]): string {
-  return btoa(encodeURIComponent(JSON.stringify(stocks)));
+function encodeHoldings(holdings: InvestmentsResponse): string {
+  return btoa(encodeURIComponent(JSON.stringify(holdings)));
 }
 
-// Decode stocks back
-function decodeStocks(param: string | null): InvestmentsResponse | null {
+function decodeHoldings(param: string | null): InvestmentsResponse | null {
   if (!param) return null;
   try {
-    const resp = JSON.parse(decodeURIComponent(atob(param))) as InvestmentsResponse;
-    console.log(resp);
-    return resp;
+    const resp = JSON.parse(decodeURIComponent(atob(param)));
+    return resp.holdings;
   } catch {
     return null;
   }
@@ -40,26 +37,23 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
   const decoded: InvestmentsResponse | null = React.useMemo(() => {
     if (typeof window === "undefined") return null;
     const url = new URL(window.location.href);
-    return decodeStocks(url.searchParams.get(QUERY_KEY));
+    return decodeHoldings(url.searchParams.get(QUERY_KEY));
   }, []);
 
-  const effectiveStocks = decoded?.holdings ?? stocks;
+  const effectiveStocks = decoded ?? stocks;
 
   // If no query param, set it on mount
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    if (!url.searchParams.get(QUERY_KEY) && stocks?.length) {
-      const encoded = encodeStocks(stocks);
+    if (!url.searchParams.get(QUERY_KEY) && stocks?.holdings.length) {
+      const encoded = encodeHoldings(stocks);
       replaceUrlParam(encoded);
     }
   }, [stocks]);
 
   // Click to copy full URL
   const copyShareUrl = React.useCallback(async () => {
-    if (typeof window === "undefined") return;
-    const encoded = encodeStocks(effectiveStocks);
-    replaceUrlParam(encoded);
     try {
       await navigator.clipboard.writeText(window.location.href);
     } catch {
@@ -67,7 +61,9 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
   }, [effectiveStocks]);
 
   // ---------- Treemap data ----------
-  const sectors = Array.from(new Set(effectiveStocks.map(s => s.sector || "Other")));
+  console.log("NABIL")
+  console.log(effectiveStocks.holdings)
+  const sectors = Array.from(new Set(effectiveStocks.holdings.map(s => s.sector || "Other")));
   const treemapData: Highcharts.PointOptionsObject[] = [
     // Parents (sectors)
     ...sectors.map(sec => ({
@@ -75,7 +71,7 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
       name: sec || "Other",
     })),
     // Children (stocks)
-    ...effectiveStocks.map(s => ({
+    ...effectiveStocks.holdings.map(s => ({
       id: s.ticker || s.name,
       name: s.ticker || s.name,     // label tries ticker first
       fullName: s.name,             // for tooltip
@@ -84,13 +80,13 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
       percentage: s.percentage,     // 0..1
       percentagePL: s.percentagePL,
       price: s.price,
-      change: (s as any).change     // optional: daily % change (number)
     }))
   ];
 
   // ----- Color gradient based on change ------------------------------------
   // Auto-scale the gradient to your actual data so shades look meaningful
   const changes = effectiveStocks
+    .holdings
     .map((s) => (s as any).change)
     .filter((v): v is number => typeof v === "number" && isFinite(v));
 
@@ -116,13 +112,12 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
 
     // Gradient from red -> grey -> green based on `change`
     colorAxis: {
-      min: -range,
-      max: range,
-      // 0 maps to grey; negative towards red, positive towards green
+      min: -100,
+      max: 100,
       stops: [
-        [0, "#c0392b"],   // deep red at min
-        [0.5, "#bdc3c7"], // neutral grey at 0
-        [1, "#2ecc71"]    // deep green at max
+        [0, "#c0392b"],   // red
+        [0.5, "#bdc3c7"], // neutral
+        [1, "#2ecc71"]    // green
       ]
     },
 
@@ -130,10 +125,10 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
       type: "treemap",
       layoutAlgorithm: "squarified",
       allowDrillToNode: false,
-      colorKey: "change",
+      colorKey: "percentagePL",
       data: treemapData,
       borderColor: "rgba(0,0,0,0.15)",
-      borderWidth: 1,
+      borderWidth: 1.5,
 
       // Bigger, bolder sector labels
       levels: [{
