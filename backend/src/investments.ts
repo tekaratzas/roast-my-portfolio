@@ -12,12 +12,18 @@ const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
 
+const MAX_REQUESTS = process.env.MAX_REQUESTS
+  ? parseInt(process.env.MAX_REQUESTS)
+  : 10e4;
+
 export class InvestmentsController {
   private plaidClient: PlaidApi;
   private authenticationController: AuthenticationController;
+  private counter: number;
 
   constructor() {
     this.authenticationController = new AuthenticationController();
+    this.counter = 0;
     const configuration = new Configuration({
       basePath: PlaidEnvironments[PLAID_ENV],
       baseOptions: {
@@ -33,6 +39,11 @@ export class InvestmentsController {
   }
 
   public async getHoldings(publicToken: string): Promise<HoldingType[]> {
+    console.log("current counter:", this.counter, "out of", MAX_REQUESTS);
+    if (this.counter++ > MAX_REQUESTS) {
+      throw new Error("Too many requests");
+    }
+
     const accessToken =
       await this.authenticationController.getAccessToken(publicToken);
 

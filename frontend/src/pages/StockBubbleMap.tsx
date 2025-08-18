@@ -77,33 +77,33 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
     bySector[s.sector ?? ""].push({
       name: s.name,
       value: s.percentage * 100,
-      percentage  : s.percentage  
+      percentage: s.percentage,
     } as any);
   });
 
-  const series: Highcharts.SeriesPackedbubbleOptions[] = Object.entries(bySector).map(
-    ([sector, data]) => ({
-      type: "packedbubble",
-      name: sector,
-      data,
-      colorKey: "change"
-    })
-  );
+  const series: Highcharts.SeriesPackedbubbleOptions[] = Object.entries(
+    bySector
+  ).map(([sector, data]) => ({
+    type: "packedbubble",
+    name: sector,
+    data,
+    colorKey: "change",
+  }));
 
   const options: Highcharts.Options = {
     chart: { type: "packedbubble", height: "100%", backgroundColor: "#f7f8fa" },
     title: {
       text: "My Holdings",
       align: "center",
-      style: { fontWeight: "600", fontSize: "24px" }
+      style: { fontWeight: "600", fontSize: "24px" },
     },
     legend: { enabled: false },
     colorAxis: {
       dataClasses: [
         { to: -0.0001, color: "#c0392b" },
         { from: -0.0001, to: 0.0001, color: "#7f8c8d" },
-        { from: 0.0001, color: "#2ecc71" }
-      ]
+        { from: 0.0001, color: "#2ecc71" },
+      ],
     },
     plotOptions: {
       packedbubble: {
@@ -121,16 +121,20 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
             // @ts-ignore
             const p = this.point as any;
             const showPercent = (p.percentage ?? 0) >= 2;
-            const pct = p.percentage != null
-              ? `${p.percentage.toFixed(1)}%`
-              : null;
+            const pct =
+              p.percentage != null ? `${p.percentage.toFixed(1)}%` : null;
             return showPercent && pct
               ? `${p.name}<br/><span style="font-size:14px; color:#6b7280">${pct}</span>`
               : `${p.name}`;
           },
-          style: { color: "#111827", textOutline: "none", fontSize: "18px", fontWeight: "500" }
-        }
-      }
+          style: {
+            color: "#111827",
+            textOutline: "none",
+            fontSize: "18px",
+            fontWeight: "500",
+          },
+        },
+      },
     },
     tooltip: {
       useHTML: true,
@@ -138,11 +142,15 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
         // @ts-ignore
         const p = this.point as any;
         const change =
-          p.change != null ? `${p.change >= 0 ? "+" : ""}${p.change.toFixed(2)}%` : "N/A";
+          p.change != null
+            ? `${p.change >= 0 ? "+" : ""}${p.change.toFixed(2)}%`
+            : "N/A";
         const price = p.price != null ? `$${p.price.toFixed(2)}` : "N/A";
-        const cap = p.value != null ? `${Number(p.value).toLocaleString()}B` : "—";
+        const cap =
+          p.value != null ? `${Number(p.value).toLocaleString()}B` : "—";
         const pct = p.percentage != null ? `${p.percentage.toFixed(2)}%` : "—";
-        const color = p.change > 0 ? "#2ecc71" : p.change < 0 ? "#c0392b" : "#7f8c8d";
+        const color =
+          p.change > 0 ? "#2ecc71" : p.change < 0 ? "#c0392b" : "#7f8c8d";
         return `
           <div style="min-width:180px">
             <div style="font-weight:600; margin-bottom:4px">${p.name}</div>
@@ -152,9 +160,9 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
             <div><b>Change:</b> <span style="color:${color}">${change}</span></div>
           </div>
         `;
-      }
+      },
     },
-    series
+    series,
   };
 
   return (
