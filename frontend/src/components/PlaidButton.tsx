@@ -7,7 +7,7 @@ import type { Holding } from '../../../shared/Types';
 const QUERY_KEY = "s";
 
 function encodeStocks(stocks: Holding[]): string {
-    return encodeURIComponent(JSON.stringify(stocks));
+    return btoa(encodeURIComponent(JSON.stringify(stocks)));
 }
 
 function PlaidLinkButton({ plaidURL, isLoading }: { plaidURL: string, isLoading: boolean }) {
