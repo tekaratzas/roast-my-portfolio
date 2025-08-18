@@ -13,7 +13,7 @@
 //   return <StockBubbleMap stocks={stocks} />;
 // }
 
-import Home from './pages/Home'
+import { Home } from './pages/Home'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import StockBubbleMap from "./pages/StockBubbleMap";
 
