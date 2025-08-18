@@ -83,6 +83,7 @@ export class InvestmentsController {
         percentage: parseFloat(
           ((holding.institution_value / totalValue) * 100).toFixed(2)
         ),
+        price: security?.close_price || holding.institution_price,
       };
     });
   }

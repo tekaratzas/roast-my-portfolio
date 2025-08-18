@@ -78,6 +78,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
       name: s.name,
       value: s.percentage * 100,
       percentage: s.percentage,
+      price: s.price,
     } as any);
   });
 
@@ -141,6 +142,7 @@ const StockBubbleMap: React.FC<Props> = ({ stocks }) => {
       formatter: function () {
         // @ts-ignore
         const p = this.point as any;
+        console.log(p);
         const change =
           p.change != null
             ? `${p.change >= 0 ? "+" : ""}${p.change.toFixed(2)}%`
