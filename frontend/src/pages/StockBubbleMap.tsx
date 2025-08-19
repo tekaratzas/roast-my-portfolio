@@ -2,6 +2,12 @@ import React from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 // @ts-ignore
+import HighchartsMore from "highcharts/highcharts-more";
+// @ts-ignore
+import highchartsAnnotations from "highcharts/modules/annotations";
+// @ts-ignore
+import colorAxis from 'highcharts/modules/coloraxis';
+// @ts-ignore
 import HC_treemap from "highcharts/modules/treemap";
 import type { InvestmentsResponse } from "../../../shared/Types";
 
@@ -15,6 +21,11 @@ const QUERY_KEY = "s";
 function encodeHoldings(holdings: InvestmentsResponse): string {
   return btoa(encodeURIComponent(JSON.stringify(holdings)));
 }
+
+const getHeightPct = () =>
+  typeof window === "undefined"
+    ? "100%" // SSR-safe fallback
+    : `${(window.innerHeight / window.innerWidth) * 100}%`;
 
 function decodeHoldings(param: string | null): InvestmentsResponse | null {
   if (!param) return null;
@@ -33,6 +44,21 @@ function replaceUrlParam(encoded: string) {
 }
 
 const StockTreemap: React.FC<Props> = ({ stocks }) => {
+  const [heightPct, setHeightPct] = React.useState<string>(getHeightPct);
+
+  React.useEffect(() => {
+    let raf = 0;
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setHeightPct(getHeightPct()));
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   // Decode from URL if present
   const decoded: InvestmentsResponse | null = React.useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -63,20 +89,12 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
   // ---------- Treemap data ----------
   console.log("NABIL")
   console.log(effectiveStocks.holdings)
-  const sectors = Array.from(new Set(effectiveStocks.holdings.map(s => s.sector || "Other")));
   const treemapData: Highcharts.PointOptionsObject[] = [
-    // Parents (sectors)
-    ...sectors.map(sec => ({
-      id: sec || "Other",
-      name: sec || "Other",
-    })),
-    // Children (stocks)
     ...effectiveStocks.holdings.map(s => ({
       id: s.ticker || s.name,
       name: s.ticker || s.name,     // label tries ticker first
       fullName: s.name,             // for tooltip
-      parent: s.sector || "Other",
-      value: Math.max(0.0001, s.percentage ?? 0), // area ~ portfolio weight
+      value: Math.max(0.0001, s.percentage), // area ~ portfolio weight
       percentage: s.percentage,     // 0..1
       percentagePL: s.percentagePL,
       price: s.price,
@@ -98,7 +116,7 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
   const options: Highcharts.Options = {
     chart: {
       type: "treemap",
-      height: (8.3 / 16 * 100) + '%', // your aspect height
+      height: heightPct, // your aspect height
       backgroundColor: "#f7f8fa",
       spacing: [0, 0, 0, 0],
       margin: [0, 0, 0, 0]
@@ -110,16 +128,25 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
     },
     legend: { enabled: false },
 
-    // Gradient from red -> grey -> green based on `change`
     colorAxis: {
-      min: -100,
-      max: 100,
+      minColor: '#f73539',
+      maxColor: '#2ecc59',
       stops: [
-        [0, "#c0392b"],   // red
-        [0.5, "#bdc3c7"], // neutral
-        [1, "#2ecc71"]    // green
-      ]
-    },
+          [0, '#f73539'],
+          [0.5, '#414555'],
+          [1, '#2ecc59']
+      ],
+      min: -10,
+      max: 10,
+      gridLineWidth: 0,
+      labels: {
+          overflow: 'allow',
+          format: '{#gt value 0}+{value}{else}{value}{/gt}%',
+          style: {
+              color: 'white'
+          }
+      }
+  },
 
     series: [{
       type: "treemap",
@@ -129,21 +156,6 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
       data: treemapData,
       borderColor: "rgba(0,0,0,0.15)",
       borderWidth: 1.5,
-
-      // Bigger, bolder sector labels
-      levels: [{
-        level: 1,
-        dataLabels: {
-          enabled: true,
-          style: {
-            fontWeight: "600",
-            fontSize: "14px",
-            textOutline: "none",
-            color: "#111827"
-          }
-        },
-        borderWidth: 0
-      }],
 
       // Stock labels: font size depends on label length (not percentage)
       dataLabels: {
@@ -188,16 +200,24 @@ const StockTreemap: React.FC<Props> = ({ stocks }) => {
             point.percentage != null ? `${(point.percentage).toFixed(1)}%` : null;
           const showPct = shortSide >= 70; // show only if there's space (not tied to percentage value)
           const pctFontPx = Math.max(9, Math.round(labelFontPx * 0.85));
+          const pctPL = point.percentagePL != null
+            ? `${point.percentagePL > 0 ? "+" : ""}${(point.percentagePL).toFixed(1)}%`
+            : null;
 
           return showPct && pct
-            ? `<tspan style="font-size:${labelFontPx}px">${display}</tspan><br/>
-               <tspan style="font-size:${pctFontPx}px; fill:#1f2937">${pct}</tspan>`
+            ? `<tspan style="font-size:${pctFontPx*2}px; fill:#white">${pct}</tspan><br/><br/>
+               <tspan style="font-size:${labelFontPx}px">${display}</tspan><br/><br/>
+               ${
+                 pctPL && parseFloat(point.percentagePL) !== 0
+                   ? `<tspan style="font-size:${pctFontPx}px; fill:#white">P/L: ${pctPL}</tspan>`
+                   : ""
+               }`
             : `<tspan style="font-size:${labelFontPx}px">${display}</tspan>`;
         },
         style: {
-          color: "#111827",
+          color: "white",
           textOutline: "none",
-          fontWeight: "600"
+          fontWeight: "300"
         }
       }
     } as Highcharts.SeriesTreemapOptions],
